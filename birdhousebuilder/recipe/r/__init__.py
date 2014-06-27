@@ -8,35 +8,38 @@ from mako.template import Template
 
 from birdhousebuilder.recipe import conda
 
-templ_config = Template(
+r_install_script = Template(
 """
-[unix_http_server]
-file=${prefix}/var/run/supervisor.sock
-
-[inet_http_server]
-port = ${host}:${port}
-
-[supervisord]
-childlogdir=${prefix}/var/log/supervisor
-logfile=${prefix}/var/log/supervisor/supervisord.log
-pidfile=${prefix}/var/run/supervisord.pid
-logfile_maxbytes=50MB
-logfile_backups=10
-loglevel=info
-nodaemon=false
-minfds=1024
-minprocs=200
-
-[rpcinterface:supervisor]
-supervisor.rpcinterface_factory = supervisor.rpcinterface:make_main_rpcinterface
-
-[supervisorctl]
-serverurl=unix:///${prefix}/var/run/supervisor.sock
-
-[include]
-files = conf.d/*.conf
+% for pkg in pkg_list:
+install.packages("${pkg}", dependencies = TRUE, repo="${repo}")
+% endfor
 """
 )
+
+def install_pkgs(prefix, pkgs, repo):
+    from subprocess import check_call
+    from tempfile import NamedTemporaryFile
+
+    pkg_list = conda.split_args(pkgs)
+    if len(pkg_list) > 0:
+        result = r_install_script.render(
+            pkg_list=pkg_list,
+            repo=repo
+            )
+
+        fp = NamedTemporaryFile(suffix='.R', prefix='install', delete=False)
+        fp.write(result)
+        fp.close()
+
+        cmd = '%s --no-save < %s' % (os.path.join(prefix, 'bin/R'), fp.name)
+        check_call(cmd, shell=True)
+
+        try:
+            os.remove(fp.name)
+        except OSError:
+            pass
+
+    return pkg_list
 
 class Recipe(object):
     """This recipe is used by zc.buildout"""
@@ -46,47 +49,24 @@ class Recipe(object):
         b_options = buildout['buildout']
         self.anaconda_home = b_options.get('anaconda-home', conda.anaconda_home)
 
-        
-        self.program = options.get('program', name)
+        self.repo = options.get('repo', "http://ftp5.gwdg.de/pub/misc/cran")
+        self.pkgs = options.get('pkgs', '')
 
     def install(self):
         installed = []
-        installed += list(self.install_supervisor())
-        installed += list(self.install_config())
-        installed += list(self.install_program())
-        installed += list(self.install_start_stop())
+        installed += list(self.install_r())
+        installed += list(self.install_pkgs())
         return installed
 
-    def install_supervisor(self):
+    def install_r(self):
         script = conda.Recipe(
             self.buildout,
             self.name,
-            {'pkgs': 'supervisor'})
+            {'pkgs': 'r'})
         return script.install()
         
-       
-    def install_program(self):
-        """
-        install supervisor program config file
-        """
-        result = templ_program.render(
-            program=self.program,
-            command=self.command,
-            directory=self.directory,
-            priority=self.priority,
-            environment=self.environment)
-
-        output = os.path.join(self.anaconda_home, 'etc', 'supervisor', 'conf.d', self.program + '.conf')
-        conda.makedirs(os.path.dirname(output))
-        
-        try:
-            os.remove(output)
-        except OSError:
-            pass
-
-        with open(output, 'wt') as fp:
-            fp.write(result)
-        return [output]
+    def install_pkgs(self):
+        return install_pkgs(self.anaconda_home, self.pkgs, self.repo)
 
     def update(self):
         return self.install()
