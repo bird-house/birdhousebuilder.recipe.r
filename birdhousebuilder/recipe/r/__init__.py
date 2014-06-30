@@ -51,6 +51,7 @@ class Recipe(object):
 
         self.repo = options.get('repo', "http://ftp5.gwdg.de/pub/misc/cran")
         self.pkgs = options.get('pkgs', '')
+        self.on_update = conda.as_bool(options.get('on-update', 'false'))
 
     def install(self):
         installed = []
@@ -69,7 +70,10 @@ class Recipe(object):
         return install_pkgs(self.anaconda_home, self.pkgs, self.repo)
 
     def update(self):
-        return self.install()
+        installed = list()
+        if self.on_update:
+            installed = self.install()
+        return installed
 
 def uninstall(name, options):
     pass
