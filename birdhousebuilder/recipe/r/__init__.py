@@ -47,7 +47,7 @@ class Recipe(object):
     def __init__(self, buildout, name, options):
         self.buildout, self.name, self.options = buildout, name, options
         b_options = buildout['buildout']
-        self.anaconda_home = b_options.get('anaconda-home', conda.anaconda_home)
+        self.anaconda_home = b_options.get('anaconda-home', conda.anaconda_home())
 
         self.repo = options.get('repo', "http://ftp5.gwdg.de/pub/misc/cran")
         self.pkgs = options.get('pkgs', '')
