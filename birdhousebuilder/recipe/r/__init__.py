@@ -16,7 +16,7 @@ install.packages("${pkg}", dependencies = TRUE, repo="${repo}")
 """
 )
 
-def install_pkgs(prefix, pkgs, repo):
+def install_pkgs(pkgs, repo):
     from subprocess import check_call
     from tempfile import NamedTemporaryFile
 
@@ -31,7 +31,7 @@ def install_pkgs(prefix, pkgs, repo):
         fp.write(result)
         fp.close()
 
-        cmd = '%s --no-save < %s' % (os.path.join(prefix, 'bin/R'), fp.name)
+        cmd = 'R --no-save < %s' % (fp.name)
         check_call(cmd, shell=True)
 
         try:
@@ -67,7 +67,7 @@ class Recipe(object):
         return script.install()
         
     def install_pkgs(self):
-        return install_pkgs(self.anaconda_home, self.pkgs, self.repo)
+        return install_pkgs(self.pkgs, self.repo)
 
     def update(self):
         installed = list()
