@@ -55,7 +55,7 @@ class Recipe(object):
 
     def install(self):
         installed = []
-        installed += list(self.install_r())
+        #installed += list(self.install_r())
         installed += list(self.install_pkgs())
         return installed
 
