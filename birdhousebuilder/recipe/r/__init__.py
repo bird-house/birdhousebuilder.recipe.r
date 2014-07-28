@@ -16,7 +16,7 @@ install.packages("${pkg}", dependencies = TRUE, repo="${repo}")
 """
 )
 
-def install_pkgs(pkgs, repo):
+def install_pkgs(pkgs, repo, prefix):
     from subprocess import check_call
     from tempfile import NamedTemporaryFile
 
@@ -31,7 +31,7 @@ def install_pkgs(pkgs, repo):
         fp.write(result)
         fp.close()
 
-        cmd = 'R --no-save < %s' % (fp.name)
+        cmd = '%s/bin/R --no-save < %s' % (prefix, fp.name)
         check_call(cmd, shell=True)
 
         try:
@@ -47,7 +47,7 @@ class Recipe(object):
     def __init__(self, buildout, name, options):
         self.buildout, self.name, self.options = buildout, name, options
         b_options = buildout['buildout']
-        self.anaconda_home = b_options.get('anaconda-home', conda.anaconda_home())
+        self.prefix = b_options.get('anaconda-home', conda.anaconda_home())
 
         self.repo = options.get('repo', "http://ftp5.gwdg.de/pub/misc/cran")
         self.pkgs = options.get('pkgs', '')
@@ -67,7 +67,7 @@ class Recipe(object):
         return script.install()
         
     def install_pkgs(self):
-        return install_pkgs(self.pkgs, self.repo)
+        return install_pkgs(self.pkgs, self.repo, self.prefix)
 
     def update(self):
         installed = list()
