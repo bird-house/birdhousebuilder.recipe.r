@@ -5,8 +5,8 @@ This module contains the tool of collective.recipe.cmd
 from setuptools import find_packages
 from setuptools import setup
 
-version = '0.1.2'
-description = 'A Buildout recipe to install r packages'
+version = '0.1.3'
+description = 'A Buildout recipe to install R packages with Anaconda.'
 long_description = (
     open('README.rst').read() + '\n' +
     open('AUTHORS.rst').read() + '\n' +
