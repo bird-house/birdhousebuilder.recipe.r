@@ -54,10 +54,17 @@ class Recipe(object):
         self.on_update = conda.as_bool(options.get('on-update', 'false'))
 
     def install(self):
-        installed = []
-        #installed += list(self.install_r())
-        installed += list(self.install_pkgs())
-        return installed
+        self.execute()
+        return tuple()
+
+    def update(self):
+        if self.on_update:
+            self.execute()
+        return tuple()
+
+    def execute(self):
+        #self.install_r()
+        self.install_pkgs()
 
     def install_r(self):
         script = conda.Recipe(
@@ -68,13 +75,8 @@ class Recipe(object):
         
     def install_pkgs(self):
         return install_pkgs(self.pkgs, self.repo, self.prefix)
-
-    def update(self):
-        installed = list()
-        if self.on_update:
-            installed = self.install()
-        return installed
-
+        
+    
 def uninstall(name, options):
     pass
 

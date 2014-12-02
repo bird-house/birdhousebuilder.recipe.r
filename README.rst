@@ -36,6 +36,8 @@ The recipe supports the following options:
 ``pkgs``
    List of ``R`` packages which should be installed (space separated).
 
+``on-update``
+   If set to false don't update R packages on buildout update. Default: ``false``.
 
 Example usage
 =============
@@ -51,4 +53,5 @@ Example usage in your ``buildout.cfg`` to install ``R`` with Anaconda and additi
   recipe = birdhousebuilder.recipe.r
   repo = http://ftp5.gwdg.de/pub/misc/cran
   pkgs = sp raster ncdf
+  on-update = false
 
